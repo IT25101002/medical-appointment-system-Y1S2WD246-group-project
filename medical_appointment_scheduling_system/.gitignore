@@ -28,3 +28,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+# Ignore everything by default
+*
+
+# But track only the medical_appointment_scheduling_system folder
+!medical_appointment_scheduling_system/
