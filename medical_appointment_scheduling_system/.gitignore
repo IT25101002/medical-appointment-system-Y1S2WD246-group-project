@@ -28,3 +28,18 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+env/
+
+# IntelliJ / PyCharm
+.idea/
+*.iml
+
+# OS files
+Thumbs.db
