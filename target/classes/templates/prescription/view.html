@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{doctor/layout :: layout(~{::content})}">
+<body>
+    <div th:fragment="content">
+        <div class="card max-w-2xl mx-auto p-5 bg-white" style="max-width: 700px; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+            <!-- Header / Prescription Top -->
+            <div class="d-flex justify-content-between align-items-start mb-5 pb-4 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 bg-primary-subtle text-primary rounded-circle">
+                        <i data-lucide="shield-plus" style="width: 32px; height: 32px;"></i>
+                    </div>
+                    <div>
+                        <h2 class="h3 fw-bold mb-1" style="color: var(--primary);">MediScheduler Hospital</h2>
+                        <p class="text-muted small mb-0">Official Medical Prescription</p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="text-muted small fw-semibold">Prescription #<span th:text="${prescriptionObj.id}">1</span></div>
+                    <div class="text-muted small">Date: <span th:text="${#temporals.format(prescriptionObj.createdAt, 'MMM dd, yyyy')}">May 20, 2026</span></div>
+                </div>
+            </div>
+
+            <!-- Doctor & Patient Info -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="p-4 bg-light rounded-4 h-100">
+                        <div class="text-primary small fw-bold mb-2 text-uppercase tracking-wider">Prescribed By</div>
+                        <div class="h5 fw-bold mb-1" th:text="${prescriptionObj.doctor.getFullName()}">Dr. Michael Brown</div>
+                        <div class="text-muted small mb-1" th:text="${prescriptionObj.doctor.getSpecialty()}">Cardiologist</div>
+                        <div class="text-muted small"><i data-lucide="phone" class="me-1" style="width: 14px; height: 14px;"></i> <span th:text="${prescriptionObj.doctor.getPhone()}">+1 (555) 234-5678</span></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 bg-light rounded-4 h-100">
+                        <div class="text-primary small fw-bold mb-2 text-uppercase tracking-wider">Patient Details</div>
+                        <div class="h5 fw-bold mb-1" th:text="${prescriptionObj.patient.getFirstName() + ' ' + prescriptionObj.patient.getLastName()}">John Doe</div>
+                        <div class="text-muted small mb-1"><i data-lucide="mail" class="me-1" style="width: 14px; height: 14px;"></i> <span th:text="${prescriptionObj.patient.getEmail()}">patient@example.com</span></div>
+                        <div class="text-muted small"><i data-lucide="phone" class="me-1" style="width: 14px; height: 14px;"></i> <span th:text="${prescriptionObj.patient.getPhone()}">+1 (555) 987-6543</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rx Section -->
+            <div class="mb-5 p-4 border rounded-4 bg-light-subtle">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <span class="h2 fw-bold text-primary mb-0 me-2" style="font-family: serif;">Rx</span>
+                    <hr class="flex-grow-1 my-0 border-primary">
+                </div>
+
+                <div class="mb-4">
+                    <div class="text-muted small fw-semibold mb-1">Medicine Name</div>
+                    <div class="h4 fw-bold text-dark mb-0" th:text="${prescriptionObj.medicineName}">Amoxicillin</div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="text-muted small fw-semibold mb-1">Dosage</div>
+                        <div class="h5 fw-semibold text-dark mb-0" th:text="${prescriptionObj.dosage}">500mg, 1 tab</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small fw-semibold mb-1">Related Appointment ID</div>
+                        <div class="h5 fw-semibold text-dark mb-0" th:text="${'#' + prescriptionObj.appointment.id}">#1</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-muted small fw-semibold mb-1">Doctor's Instructions</div>
+                    <div class="p-3 bg-white rounded-3 border" style="min-height: 80px;">
+                        <p class="mb-0 text-dark" th:text="${prescriptionObj.instructions}">Take twice daily after meals for 7 days.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer / Signature -->
+            <div class="d-flex justify-content-between align-items-end pt-4 border-top mb-5">
+                <div class="text-muted small italic">Wishing you a speedy recovery!</div>
+                <div class="text-center">
+                    <div class="border-bottom border-dark pb-1 px-4 mb-1" style="font-family: 'Brush Script MT', cursive; font-size: 1.5rem;" th:text="${prescriptionObj.doctor.getFullName()}">Dr. Michael Brown</div>
+                    <div class="text-muted small fw-semibold">Doctor's Signature</div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 d-print-none">
+                <button onclick="window.print()" class="btn btn-primary p-3 flex-grow-1 fw-bold" style="border-radius: 12px;">
+                    <i data-lucide="printer" class="me-2"></i> Print Prescription
+                </button>
+                <a th:href="@{/doctor/prescriptions/edit/{id}(id=${prescriptionObj.id})}" class="btn btn-outline-primary p-3 fw-bold px-4" style="border-radius: 12px;">Edit</a>
+                <a th:href="@{/doctor/prescriptions}" class="btn btn-outline-secondary p-3 fw-bold px-4" style="border-radius: 12px;">Back to List</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

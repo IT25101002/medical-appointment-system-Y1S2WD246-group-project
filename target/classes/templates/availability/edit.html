@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>MediScheduler | Edit Availability</title>
+    <link rel="stylesheet" th:href="@{/dashboard.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: var(--bg-content); font-family: 'Inter', sans-serif; }
+        .form-card { max-width: 600px; margin: 80px auto; background: white; padding: 40px; border-radius: 24px; box-shadow: var(--shadow-lg); }
+        .form-control { border-radius: 12px; padding: 12px; }
+        .btn-update { background: var(--primary); color: white; border-radius: 12px; padding: 14px; width: 100%; border: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h2 class="mb-4 fw-bold">Update Working Schedule</h2>
+        <form th:action="@{/availability/update/{id}(id=${availability.id})}" th:object="${availability}" method="post">
+            <div class="mb-3">
+                <label class="form-label">Doctor</label>
+                <select th:field="*{doctor}" class="form-control" required>
+                    <option th:each="doc : ${doctors}" th:value="${doc.id}" th:text="${doc.getFullName()}" th:selected="${doc.id == availability.doctor.id}">Dr. Name</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Day of Week</label>
+                <select th:field="*{workingDay}" class="form-control" required>
+                    <option value="MONDAY">Monday</option>
+                    <option value="TUESDAY">Tuesday</option>
+                    <option value="WEDNESDAY">Wednesday</option>
+                    <option value="THURSDAY">Thursday</option>
+                    <option value="FRIDAY">Friday</option>
+                    <option value="SATURDAY">Saturday</option>
+                    <option value="SUNDAY">Sunday</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" th:field="*{startTime}" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">End Time</label>
+                    <input type="time" th:field="*{endTime}" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-update">Update Schedule</button>
+            <div class="text-center mt-3">
+                <a th:href="@{/availability/list}" class="text-decoration-none text-muted small">Cancel and go back</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{doctor/layout :: layout(~{::content})}">
+<body>
+    <div th:fragment="content">
+        <div class="card max-w-2xl mx-auto p-5" style="max-width: 650px; border-radius: 24px; border: none; box-shadow: var(--shadow-lg);">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="p-3 bg-primary-subtle text-primary rounded-circle">
+                    <i data-lucide="file-plus"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold mb-1">Issue New Prescription</h2>
+                    <p class="text-muted small mb-0">Provide medicine details, dosage, and patient instructions.</p>
+                </div>
+            </div>
+
+            <form th:action="@{/doctor/prescriptions/save}" th:object="${prescriptionObj}" method="post">
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-muted small">Related Appointment</label>
+                    <select th:field="*{appointment}" class="form-select p-3" style="border-radius: 12px;" required>
+                        <option value="">Select Appointment</option>
+                        <option th:each="app : ${appointments}" th:value="${app.id}" th:text="${'#'+app.id+' - '+app.patient.getFirstName()+' '+app.patient.getLastName()+' ('+app.date+')'}">#1 - John Doe</option>
+                    </select>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Doctor</label>
+                        <select th:field="*{doctor}" class="form-select p-3" style="border-radius: 12px;" required>
+                            <option value="">Select Doctor</option>
+                            <option th:each="doc : ${doctors}" th:value="${doc.id}" th:text="${doc.getFullName()}">Dr. Name</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Patient</label>
+                        <select th:field="*{patient}" class="form-select p-3" style="border-radius: 12px;" required>
+                            <option value="">Select Patient</option>
+                            <option th:each="pat : ${patients}" th:value="${pat.id}" th:text="${pat.getFirstName()+' '+pat.getLastName()}">Patient Name</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Medicine Name</label>
+                        <input type="text" th:field="*{medicineName}" class="form-control p-3" placeholder="e.g. Amoxicillin" style="border-radius: 12px;" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Dosage</label>
+                        <input type="text" th:field="*{dosage}" class="form-control p-3" placeholder="e.g. 500mg, 1 tab" style="border-radius: 12px;" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-muted small">Instructions</label>
+                    <textarea th:field="*{instructions}" class="form-control p-3" rows="4" placeholder="e.g. Take twice daily after meals for 7 days" style="border-radius: 12px;"></textarea>
+                </div>
+
+                <div class="d-flex gap-3 pt-2">
+                    <button type="submit" class="btn btn-primary p-3 flex-grow-1 fw-bold" style="border-radius: 12px;">Save Prescription</button>
+                    <a th:href="@{/doctor/prescriptions}" class="btn btn-outline-secondary p-3 fw-bold px-4" style="border-radius: 12px;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
