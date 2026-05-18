@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">MediScheduler | Doctor Portal</title>
+    <link rel="stylesheet" th:href="@{/dashboard.css}">
+    <!-- Bootstrap CSS as requested -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Override some Bootstrap defaults to match our premium style */
+        body { background-color: var(--bg-main); font-family: 'Inter', sans-serif; }
+        .main-container { margin-left: 260px; padding: 0; min-height: 100vh; }
+        .topbar { background-color: white; border-bottom: 1px solid var(--border); }
+        .sidebar { z-index: 1000; }
+        .dashboard-content { padding: 40px; background-color: var(--bg-content); min-height: calc(100vh - 72px); }
+        .nav-link { color: var(--sidebar-text); }
+        .nav-link.active { background-color: var(--sidebar-active); color: var(--sidebar-text-active); }
+        .nav-link:hover { background-color: var(--primary-light); color: var(--primary); }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield-plus" style="color: var(--primary);"></i>
+            <div>MediScheduler<br><small style="font-size: 0.65rem; font-weight: 500; color: var(--text-muted);">Doctor Portal</small></div>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-label">Management</div>
+            <ul class="list-unstyled">
+                <li class="nav-item">
+                    <a th:href="@{/doctor/dashboard}" class="nav-link" th:classappend="${activePage == 'dashboard'} ? ' active' : ''">
+                        <i data-lucide="layout-dashboard"></i> Dashboard Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/doctor/appointments}" class="nav-link" th:classappend="${activePage == 'appointments'} ? ' active' : ''">
+                        <i data-lucide="calendar"></i> Appointments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/doctor/patients}" class="nav-link" th:classappend="${activePage == 'patients'} ? ' active' : ''">
+                        <i data-lucide="users"></i> Patient List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/doctor/schedule}" class="nav-link" th:classappend="${activePage == 'schedule'} ? ' active' : ''">
+                        <i data-lucide="clock"></i> Availability
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/doctor/prescriptions}" class="nav-link" th:classappend="${activePage == 'prescriptions'} ? ' active' : ''">
+                        <i data-lucide="file-text"></i> Prescriptions
+                    </a>
+                </li>
+            </ul>
+
+            <div class="nav-label">Account</div>
+            <ul class="list-unstyled">
+                <li class="nav-item">
+                    <a href="/doctor/profile" class="nav-link" th:classappend="${activePage == 'profile'} ? ' active' : ''">
+                        <i data-lucide="user"></i> My Profile
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/logout" class="nav-link text-danger">
+                        <i data-lucide="log-out"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Topbar -->
+        <header class="topbar d-flex align-items-center justify-content-between px-4" style="height: 72px;">
+            <div class="search-container" style="width: 300px;">
+                <i data-lucide="search"></i>
+                <input type="text" class="form-control" placeholder="Search patients...">
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-link position-relative p-0 text-muted">
+                    <i data-lucide="bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.5rem;">5</span>
+                </button>
+                
+                <div class="user-profile d-flex align-items-center gap-2">
+                    <img th:src="@{/dr_michael_brown.png}" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                    <div class="user-info">
+                        <div class="fw-bold" style="font-size: 0.875rem;" th:text="${doctorName}">Dr. Michael Brown</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Specialist</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <main class="dashboard-content">
+            <div th:replace="${content}"></div>
+        </main>
+    </div>
+
+    <script>lucide.createIcons();</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
