@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{doctor/layout :: layout(~{::content})}">
+<body>
+    <div th:fragment="content">
+        <section class="welcome-section mb-4">
+            <h1 class="h3 fw-bold" th:text="${title}">Schedule & Availability</h1>
+            <p class="text-muted">Set your general weekly working hours or manage confirmed calendar dates.</p>
+        </section>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card p-5 h-100 bg-white border-0 text-center" style="border-radius: 24px; box-shadow: var(--shadow-md);">
+                    <div class="mx-auto p-4 bg-warning-subtle text-warning rounded-circle mb-4" style="width: 80px; height: 80px;">
+                        <i data-lucide="clock" style="width: 40px; height: 40px;"></i>
+                    </div>
+                    <h2 class="h4 fw-bold mb-2">General Availability</h2>
+                    <p class="text-muted small mb-4">Define your recurring weekly working hours (e.g., Every Monday from 09:00 to 17:00).</p>
+                    <a th:href="@{/availability/list}" class="btn btn-warning text-dark fw-bold p-3 w-100" style="border-radius: 12px;">Manage Availability</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-5 h-100 bg-white border-0 text-center" style="border-radius: 24px; box-shadow: var(--shadow-md);">
+                    <div class="mx-auto p-4 bg-primary-subtle text-primary rounded-circle mb-4" style="width: 80px; height: 80px;">
+                        <i data-lucide="calendar" style="width: 40px; height: 40px;"></i>
+                    </div>
+                    <h2 class="h4 fw-bold mb-2">Confirmed Schedules</h2>
+                    <p class="text-muted small mb-4">Manage specific calendar date blocks, shifts, and active/cancelled status.</p>
+                    <a th:href="@{/doctor/schedules}" class="btn btn-primary fw-bold p-3 w-100" style="border-radius: 12px;">Manage Confirmed Schedule</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
