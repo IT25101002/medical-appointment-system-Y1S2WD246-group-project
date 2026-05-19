@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediScheduler | Appointments</title>
+    <link rel="stylesheet" th:href="@{/dashboard.css}">
+    <style>
+        /* Specific styles for Appointments page */
+        .booking-container {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .form-group select, .form-group input {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-content);
+            font-family: 'Inter', sans-serif;
+        }
+        .book-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+        .book-btn:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Sidebar (Same as Dashboard) -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield-check"></i>
+            <div>MediScheduler<br><small style="font-size: 0.65rem; font-weight: 500; color: var(--text-muted);">Patient Portal</small></div>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-label">Main Menu</div>
+            <ul style="list-style: none;">
+                <li class="nav-item"><a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/patient/appointments" class="nav-link active"><i data-lucide="calendar"></i>Appointments</a></li>
+                <li class="nav-item"><a href="/patient/doctors" class="nav-link"><i data-lucide="users"></i>Doctors</a></li>
+                <li class="nav-item"><a href="/patient/prescriptions" class="nav-link"><i data-lucide="file-text"></i>Prescriptions</a></li>
+                <li class="nav-item"><a href="/patient/records" class="nav-link"><i data-lucide="folder-heart"></i>Medical Records</a></li>
+                <li class="nav-item"><a href="/patient/bills" class="nav-link"><i data-lucide="credit-card"></i>Bills & Payments</a></li>
+                <li class="nav-item"><a href="/patient/messages" class="nav-link"><i data-lucide="mail"></i>Messages</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="main-container">
+        <header class="topbar">
+            <div class="search-container"><i data-lucide="search"></i><input type="text" placeholder="Search..."></div>
+            <div class="topbar-actions">
+                <div class="user-profile">
+                    <img th:src="@{/patient_avatar.png}" alt="User Avatar" class="user-avatar">
+                    <div class="user-info"><div class="user-name">John Doe</div><div class="user-role">Patient</div></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-content" style="display: block;">
+            <section class="welcome-section">
+                <h1 th:text="${title}">Book Appointment</h1>
+                <p>Schedule your next visit with our specialists.</p>
+            </section>
+
+            <div class="booking-container">
+                <h3>Quick Booking</h3>
+                <div th:if="${param.success}" class="alert alert-success" style="padding: 15px; background: #f0fdf4; color: #166534; border-radius: 10px; margin-bottom: 20px; font-weight: 600;">
+                    🎉 Appointment successfully scheduled!
+                </div>
+                <div th:if="${param.error}" class="alert alert-danger" style="padding: 15px; background: #fef2f2; color: #ef4444; border-radius: 10px; margin-bottom: 20px; font-weight: 600;" th:text="${param.error}">
+                    Error scheduling appointment.
+                </div>
+                <form th:action="@{/patient/book-appointment}" th:object="${appointment}" method="post" class="form-grid">
+                    <input type="hidden" name="patientEmail" th:value="${patientEmail}" />
+                    <input th:if="${patient != null}" type="hidden" th:field="*{patient}" th:value="${patient.id}" />
+
+                    <div class="form-group">
+                        <label>Select Specialty</label>
+                        <select id="specialtySelect" onchange="filterDoctors()">
+                            <option value="">All Specialties</option>
+                            <option th:each="doc : ${doctors}" th:value="${doc.specialty}" th:text="${doc.specialty}"></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Doctor</label>
+                        <select th:field="*{doctor}" id="doctorSelect" required>
+                            <option value="">Choose a specialist...</option>
+                            <option th:each="doc : ${doctors}" th:value="${doc.id}" th:attr="data-specialty=${doc.specialty}" th:text="${doc.getFullName() + ' (' + doc.specialty + ')'}" th:selected="${doc.id == selectedDoctorId}">Dr. Name</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Date</label>
+                        <input type="date" th:field="*{date}" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Preferred Time</span>
+                            <button type="button" onclick="showAvailabilityPopup()" style="background: none; border: none; color: var(--primary); font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="info" style="width: 14px; height: 14px;"></i> Check Availability
+                            </button>
+                        </label>
+                        <input type="time" th:field="*{time}" required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Reason for Visit</label>
+                        <input type="text" th:field="*{reason}" placeholder="Briefly describe your symptoms..." style="width: 100%;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <button type="submit" class="book-btn">Schedule Appointment</button>
+                    </div>
+                </form>
+            </div>
+
+            <section>
+                <div class="section-header">
+                    <h2>Your Appointments</h2>
+                </div>
+                <div class="appointments-list">
+                    <div th:each="appt : ${appointments}" class="appointment-card">
+                        <div class="doctor-info">
+                            <div class="stat-icon blue" style="width: 48px; height: 48px;"><i data-lucide="user"></i></div>
+                            <div class="doctor-details">
+                                <h4 th:text="${appt.doctor != null ? appt.doctor.getFullName() : 'Specialist'}">Doctor Name</h4>
+                                <p th:text="${appt.date}">Date</p>
+                            </div>
+                        </div>
+                        <div class="appointment-time">
+                            <div class="time-item"><i data-lucide="clock"></i> <span th:text="${appt.time}">Time</span></div>
+                            <span th:class="'status-badge ' + ${#strings.toLowerCase(appt.status)}" th:text="${appt.status}">Status</span>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(appointments)}" class="text-center py-5 text-muted" style="background: white; padding: 40px; border-radius: 20px;">
+                        No appointments scheduled yet. Use the Quick Booking form above to schedule your first visit!
+                    </div>
+                </div>
+            </section>
+
+            <!-- Doctor Availability Modal Popup -->
+            <div id="availabilityModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+                <div class="modal-card" style="background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 500px; box-shadow: var(--shadow-lg); animation: modalEnter 0.3s ease-out;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="calendar-clock" style="color: var(--primary);"></i> Doctor Availability Schedule
+                        </h3>
+                        <button type="button" onclick="closeAvailabilityPopup()" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <div id="availabilityContent" style="max-height: 300px; overflow-y: auto;">
+                        <!-- Dynamic availability content injected here -->
+                    </div>
+                    <div style="margin-top: 24px; text-align: right;">
+                        <button type="button" onclick="closeAvailabilityPopup()" class="book-btn" style="margin-top: 0; padding: 10px 20px;">Close</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script th:inline="javascript">
+        lucide.createIcons();
+        function filterDoctors() {
+            var selectedSpecialty = document.getElementById('specialtySelect').value;
+            var doctorSelect = document.getElementById('doctorSelect');
+            var options = doctorSelect.getElementsByTagName('option');
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === "") continue;
+                var spec = options[i].getAttribute('data-specialty');
+                if (selectedSpecialty === "" || spec === selectedSpecialty) {
+                    options[i].style.display = "";
+                } else {
+                    options[i].style.display = "none";
+                }
+            }
+        }
+
+        // Store availabilities from server in JavaScript array
+        var availabilitiesList = [
+            /*[# th:each="avail : ${availabilities}"]*/
+            {
+                doctorId: /*[[${avail.doctor.id}]]*/ 0,
+                doctorName: /*[[${avail.doctor.getFullName()}]]*/ '',
+                workingDay: /*[[${avail.workingDay}]]*/ '',
+                startTime: /*[[${avail.startTime}]]*/ '',
+                endTime: /*[[${avail.endTime}]]*/ '',
+                booked: /*[[${avail.booked}]]*/ false,
+                status: /*[[${avail.status}]]*/ 'AVAILABLE'
+            },
+            /*[/]*/
+        ];
+
+        function showAvailabilityPopup() {
+            var doctorSelect = document.getElementById('doctorSelect');
+            var selectedDoctorId = doctorSelect.value;
+            var contentDiv = document.getElementById('availabilityContent');
+            
+            if (!selectedDoctorId) {
+                contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg-content); border-radius: 12px;">Please select a doctor from the dropdown above to view their available time slots.</div>';
+            } else {
+                var doctorAvails = availabilitiesList.filter(function(a) { return a.doctorId == selectedDoctorId && !a.booked && a.status !== 'BOOKED'; });
+                if (doctorAvails.length === 0) {
+                    contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444; background: #fef2f2; border-radius: 12px; font-weight: 500;">No available time slots found for this doctor at the moment.</div>';
+                } else {
+                    var html = '<div style="margin-bottom: 16px; font-weight: 600; color: var(--text-main);">' + doctorAvails[0].doctorName + '\'s Available Time Slots:</div>';
+                    html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                    doctorAvails.forEach(function(a) {
+                        html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--bg-content); border-radius: 14px; border: 1px solid var(--border);">';
+                        html += '<span style="font-weight: 600; color: var(--primary); text-transform: capitalize;">' + a.workingDay + '</span>';
+                        html += '<span style="font-weight: 500; color: var(--text-main); display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 16px; height: 16px; color: var(--text-muted);"></i> ' + a.startTime + ' - ' + a.endTime + '</span>';
+                        html += '<button type="button" onclick="selectTimeSlot(\'' + a.workingDay + '\', \'' + a.startTime + '\')" class="book-btn" style="margin: 0; padding: 6px 14px; font-size: 0.8rem;">Select Slot</button>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                    contentDiv.innerHTML = html;
+                    lucide.createIcons();
+                }
+            }
+            
+            document.getElementById('availabilityModal').style.display = 'flex';
+        }
+
+        function selectTimeSlot(workingDay, startTime) {
+            // Set Preferred Time
+            var timeInput = document.querySelector('input[type="time"]');
+            if (timeInput) {
+                timeInput.value = startTime;
+            }
+            
+            // Calculate Preferred Date based on workingDay (MONDAY, TUESDAY, etc.)
+            var dateInput = document.querySelector('input[type="date"]');
+            if (dateInput && workingDay) {
+                var days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+                var targetDay = days.indexOf(workingDay.toUpperCase());
+                if (targetDay !== -1) {
+                    var today = new Date();
+                    var currentDay = today.getDay();
+                    var distance = targetDay - currentDay;
+                    if (distance <= 0) {
+                        distance += 7; // Get next week's occurrence if today or past
+                    }
+                    today.setDate(today.getDate() + distance);
+                    var yyyy = today.getFullYear();
+                    var mm = String(today.getMonth() + 1).padStart(2, '0');
+                    var dd = String(today.getDate()).padStart(2, '0');
+                    dateInput.value = yyyy + '-' + mm + '-' + dd;
+                }
+            }
+            
+            closeAvailabilityPopup();
+        }
+
+        function closeAvailabilityPopup() {
+            document.getElementById('availabilityModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
