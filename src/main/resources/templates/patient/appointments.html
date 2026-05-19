@@ -120,7 +120,7 @@
                     </div>
                     <div class="form-group">
                         <label>Preferred Date</label>
-                        <input type="date" th:field="*{date}" required>
+                        <input type="date" th:field="*{date}" id="appointmentDate" required>
                     </div>
                     <div class="form-group">
                         <label style="display: flex; justify-content: space-between; align-items: center;">
@@ -188,6 +188,19 @@
     </div>
     <script th:inline="javascript">
         lucide.createIcons();
+
+        // Set minimum date to today
+        window.onload = function() {
+            var dateInput = document.getElementById('appointmentDate');
+            if(dateInput) {
+                var today = new Date();
+                var yyyy = today.getFullYear();
+                var mm = String(today.getMonth() + 1).padStart(2, '0');
+                var dd = String(today.getDate()).padStart(2, '0');
+                dateInput.setAttribute('min', yyyy + '-' + mm + '-' + dd);
+            }
+        };
+
         function filterDoctors() {
             var selectedSpecialty = document.getElementById('specialtySelect').value;
             var doctorSelect = document.getElementById('doctorSelect');
@@ -221,22 +234,34 @@
         function showAvailabilityPopup() {
             var doctorSelect = document.getElementById('doctorSelect');
             var selectedDoctorId = doctorSelect.value;
+            var dateInput = document.getElementById('appointmentDate');
+            var selectedDate = dateInput ? dateInput.value : '';
             var contentDiv = document.getElementById('availabilityContent');
             
             if (!selectedDoctorId) {
-                contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg-content); border-radius: 12px;">Please select a doctor from the dropdown above to view their available time slots.</div>';
+                contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg-content); border-radius: 12px;">Please select a doctor from the dropdown above.</div>';
+            } else if (!selectedDate) {
+                contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg-content); border-radius: 12px;">Please select a Preferred Date first to check availability.</div>';
             } else {
-                var doctorAvails = availabilitiesList.filter(function(a) { return a.doctorId == selectedDoctorId && !a.booked && a.status !== 'BOOKED'; });
+                var parts = selectedDate.split('-');
+                var d = new Date(parts[0], parts[1] - 1, parts[2]); // parse as local time to avoid timezone shift
+                var days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+                var selectedDayName = days[d.getDay()];
+
+                var doctorAvails = availabilitiesList.filter(function(a) { 
+                    return a.doctorId == selectedDoctorId && !a.booked && a.status !== 'BOOKED' && a.workingDay.toUpperCase() === selectedDayName; 
+                });
+                
                 if (doctorAvails.length === 0) {
-                    contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444; background: #fef2f2; border-radius: 12px; font-weight: 500;">No available time slots found for this doctor at the moment.</div>';
+                    contentDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444; background: #fef2f2; border-radius: 12px; font-weight: 500;">No available time slots found for this doctor on ' + selectedDayName + 's.</div>';
                 } else {
-                    var html = '<div style="margin-bottom: 16px; font-weight: 600; color: var(--text-main);">' + doctorAvails[0].doctorName + '\'s Available Time Slots:</div>';
+                    var html = '<div style="margin-bottom: 16px; font-weight: 600; color: var(--text-main);">' + doctorAvails[0].doctorName + '\'s Slots on ' + selectedDayName + ':</div>';
                     html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
                     doctorAvails.forEach(function(a) {
                         html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--bg-content); border-radius: 14px; border: 1px solid var(--border);">';
                         html += '<span style="font-weight: 600; color: var(--primary); text-transform: capitalize;">' + a.workingDay + '</span>';
                         html += '<span style="font-weight: 500; color: var(--text-main); display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 16px; height: 16px; color: var(--text-muted);"></i> ' + a.startTime + ' - ' + a.endTime + '</span>';
-                        html += '<button type="button" onclick="selectTimeSlot(\'' + a.workingDay + '\', \'' + a.startTime + '\')" class="book-btn" style="margin: 0; padding: 6px 14px; font-size: 0.8rem;">Select Slot</button>';
+                        html += '<button type="button" onclick="selectTimeSlot(\'' + a.startTime + '\')" class="book-btn" style="margin: 0; padding: 6px 14px; font-size: 0.8rem;">Select Slot</button>';
                         html += '</div>';
                     });
                     html += '</div>';
@@ -248,33 +273,11 @@
             document.getElementById('availabilityModal').style.display = 'flex';
         }
 
-        function selectTimeSlot(workingDay, startTime) {
-            // Set Preferred Time
+        function selectTimeSlot(startTime) {
             var timeInput = document.querySelector('input[type="time"]');
             if (timeInput) {
                 timeInput.value = startTime;
             }
-            
-            // Calculate Preferred Date based on workingDay (MONDAY, TUESDAY, etc.)
-            var dateInput = document.querySelector('input[type="date"]');
-            if (dateInput && workingDay) {
-                var days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-                var targetDay = days.indexOf(workingDay.toUpperCase());
-                if (targetDay !== -1) {
-                    var today = new Date();
-                    var currentDay = today.getDay();
-                    var distance = targetDay - currentDay;
-                    if (distance <= 0) {
-                        distance += 7; // Get next week's occurrence if today or past
-                    }
-                    today.setDate(today.getDate() + distance);
-                    var yyyy = today.getFullYear();
-                    var mm = String(today.getMonth() + 1).padStart(2, '0');
-                    var dd = String(today.getDate()).padStart(2, '0');
-                    dateInput.value = yyyy + '-' + mm + '-' + dd;
-                }
-            }
-            
             closeAvailabilityPopup();
         }
 

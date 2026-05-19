@@ -4,7 +4,7 @@
     <div th:fragment="content">
         <section class="welcome-section mb-4">
             <h1 class="h3 fw-bold">Welcome back, <span th:text="${doctorName}">Dr. Michael</span></h1>
-            <p class="text-muted">You have 8 appointments scheduled for today.</p>
+            <p class="text-muted">You have <span th:text="${totalAppointments}">0</span> appointments scheduled.</p>
         </section>
 
         <!-- Stats Row -->
@@ -13,7 +13,7 @@
                 <div class="stat-card">
                     <div class="stat-icon blue"><i data-lucide="calendar"></i></div>
                     <div class="stat-info">
-                        <h3>8</h3>
+                        <h3 th:text="${totalAppointments}">0</h3>
                         <p>Appointments</p>
                     </div>
                 </div>
@@ -22,7 +22,7 @@
                 <div class="stat-card">
                     <div class="stat-icon green"><i data-lucide="users"></i></div>
                     <div class="stat-info">
-                        <h3>124</h3>
+                        <h3 th:text="${totalPatients}">0</h3>
                         <p>Total Patients</p>
                     </div>
                 </div>
@@ -79,12 +79,35 @@
             <div class="col-md-8">
                 <div class="widget h-100">
                     <div class="widget-header">
-                        <h3>Today's Schedule</h3>
+                        <h3>Upcoming Schedule</h3>
                         <a href="/doctor/appointments" class="view-all">View All</a>
                     </div>
-                    <div class="text-center py-5">
-                        <i data-lucide="loader" class="text-muted mb-3" style="width: 40px; height: 40px;"></i>
-                        <p class="text-muted">Schedule Data Under Development</p>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="vertical-align: middle;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="px-4 py-3 text-muted fw-semibold border-0">Patient</th>
+                                    <th class="px-4 py-3 text-muted fw-semibold border-0">Date & Time</th>
+                                    <th class="px-4 py-3 text-muted fw-semibold border-0">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(appointments)}">
+                                    <td colspan="3" class="text-center py-4 text-muted">No appointments scheduled.</td>
+                                </tr>
+                                <tr th:each="appointment, iterStat : ${appointments}" th:if="${iterStat.index < 5}">
+                                    <td class="px-4 py-3">
+                                        <div class="fw-semibold text-dark" th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}"></div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span th:text="${appointment.date}"></span> <span class="text-muted small" th:text="${appointment.time}"></span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="badge rounded-pill px-3 py-2 bg-primary-subtle text-primary" th:text="${appointment.status}"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -92,9 +115,21 @@
                 <div class="widget h-100">
                     <div class="widget-header">
                         <h3>Recent Patients</h3>
+                        <a href="/doctor/patients" class="view-all">View All</a>
                     </div>
-                    <div class="text-center py-5">
-                        <p class="text-muted italic">Under Development</p>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="vertical-align: middle;">
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(patients)}">
+                                    <td class="text-center py-4 text-muted">No patients yet.</td>
+                                </tr>
+                                <tr th:each="patient, iterStat : ${patients}" th:if="${iterStat.index < 5}">
+                                    <td class="px-4 py-3">
+                                        <div class="fw-semibold text-dark" th:text="${patient.firstName + ' ' + patient.lastName}"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

@@ -7,7 +7,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.medical.medischeduler.appointment.Appointment;
+import com.medical.medischeduler.appointment.AppointmentService;
+import com.medical.medischeduler.patient.Patient;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/doctor")
@@ -15,6 +19,9 @@ public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
+
+    @Autowired
+    private AppointmentService appointmentService;
 
     private Doctor getLoggedInDoctor(jakarta.servlet.http.HttpSession session) {
         String email = (String) session.getAttribute("loggedInDoctorEmail");
@@ -48,6 +55,18 @@ public class DoctorController {
         model.addAttribute("doctorName", doctor.getFullName());
         model.addAttribute("title", "Doctor Dashboard");
         model.addAttribute("activePage", "dashboard");
+
+        List<Appointment> appointments = appointmentService.getAppointmentsByDoctorId(doctor.getId());
+        List<Patient> patients = appointments.stream()
+                .map(Appointment::getPatient)
+                .distinct()
+                .collect(Collectors.toList());
+
+        model.addAttribute("totalAppointments", appointments.size());
+        model.addAttribute("totalPatients", patients.size());
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("patients", patients);
+
         return "doctor/dashboard";
     }
 
@@ -58,7 +77,23 @@ public class DoctorController {
         model.addAttribute("doctorName", doctor.getFullName());
         model.addAttribute("title", "Appointments");
         model.addAttribute("activePage", "appointments");
+
+        List<Appointment> appointments = appointmentService.getAppointmentsByDoctorId(doctor.getId());
+        model.addAttribute("appointments", appointments);
+
         return "doctor/appointments";
+    }
+
+    @GetMapping("/appointments/approve/{id}")
+    public String approveAppointment(@PathVariable Long id) {
+        appointmentService.approveAppointment(id);
+        return "redirect:/doctor/appointments";
+    }
+
+    @GetMapping("/appointments/reject/{id}")
+    public String rejectAppointment(@PathVariable Long id) {
+        appointmentService.rejectAppointment(id);
+        return "redirect:/doctor/appointments";
     }
 
     @GetMapping("/patients")
@@ -68,6 +103,14 @@ public class DoctorController {
         model.addAttribute("doctorName", doctor.getFullName());
         model.addAttribute("title", "Patient List");
         model.addAttribute("activePage", "patients");
+
+        List<Appointment> appointments = appointmentService.getAppointmentsByDoctorId(doctor.getId());
+        List<Patient> patients = appointments.stream()
+                .map(Appointment::getPatient)
+                .distinct()
+                .collect(Collectors.toList());
+        model.addAttribute("patients", patients);
+
         return "doctor/patients";
     }
 

@@ -251,12 +251,20 @@ public class PatientController {
 
     // ==============================
     // PROFILE PAGE
-    // ==============================
     @GetMapping("/profile")
-    public String showProfile(@RequestParam String email, Model model) {
+    public String showProfile(@RequestParam(required = false) String email, jakarta.servlet.http.HttpSession session, Model model) {
+        String targetEmail = email;
+        if (targetEmail == null || targetEmail.isEmpty()) {
+            targetEmail = (String) session.getAttribute("loggedInPatientEmail");
+        }
 
+        if (targetEmail == null) {
+            return "redirect:/login";
+        }
+
+        final String finalEmail = targetEmail;
         Patient patient = patientService.getAllPatients().stream()
-                .filter(p -> p.getEmail().equalsIgnoreCase(email))
+                .filter(p -> p.getEmail().equalsIgnoreCase(finalEmail))
                 .findFirst()
                 .orElse(null);
 
@@ -276,16 +284,29 @@ public class PatientController {
     // UPDATE PROFILE
     // ==============================
     @PostMapping("/profile/update")
-    public String updateSelfProfile(@ModelAttribute Patient patient,
+    public String updateSelfProfile(@ModelAttribute Patient patientUpdate,
                                     @RequestParam(required = false) String newPassword) {
 
-        if (newPassword != null && !newPassword.isEmpty()) {
-            patient.setPassword(newPassword);
+        Patient existingPatient = patientService.getAllPatients().stream()
+                .filter(p -> p.getId().equals(patientUpdate.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingPatient != null) {
+            existingPatient.setFirstName(patientUpdate.getFirstName());
+            existingPatient.setLastName(patientUpdate.getLastName());
+            existingPatient.setPhone(patientUpdate.getPhone());
+            existingPatient.setAddress(patientUpdate.getAddress());
+            
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                existingPatient.setPassword(newPassword);
+            }
+
+            patientService.savePatient(existingPatient);
+            return "redirect:/patient/profile?email=" + existingPatient.getEmail() + "&success=true";
         }
 
-        patientService.savePatient(patient);
-
-        return "redirect:/patient/profile?email=" + patient.getEmail() + "&success=true";
+        return "redirect:/patient/dashboard";
     }
 
     // ==============================

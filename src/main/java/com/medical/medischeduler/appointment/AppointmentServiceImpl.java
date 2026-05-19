@@ -53,8 +53,23 @@ public class AppointmentServiceImpl implements AppointmentService {
         matchingSlot.setStatus("BOOKED");
         availabilityRepository.save(matchingSlot);
 
-        appointment.setStatus(AppointmentStatus.PENDING);
-        return appointmentRepository.save(appointment);
+        appointment.setStatus(AppointmentStatus.APPROVED);
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        // Automatically create schedule since doctor approval is bypassed
+        if (!scheduleRepository.existsByAppointmentId(savedAppointment.getId())) {
+            com.medical.medischeduler.schedule.Schedule schedule = new com.medical.medischeduler.schedule.Schedule();
+            schedule.setDoctor(savedAppointment.getDoctor());
+            schedule.setPatient(savedAppointment.getPatient());
+            schedule.setAppointment(savedAppointment);
+            schedule.setDate(savedAppointment.getDate());
+            schedule.setStartTime(savedAppointment.getTime());
+            schedule.setEndTime(savedAppointment.getTime().plusHours(1));
+            schedule.setStatus(com.medical.medischeduler.schedule.ScheduleStatus.CONFIRMED);
+            scheduleRepository.save(schedule);
+        }
+
+        return savedAppointment;
     }
 
     @Override
