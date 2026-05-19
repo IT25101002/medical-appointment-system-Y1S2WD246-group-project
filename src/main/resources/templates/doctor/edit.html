@@ -10,41 +10,50 @@
         .form-card { max-width: 600px; margin: 80px auto; background: white; padding: 40px; border-radius: 24px; box-shadow: var(--shadow-lg); }
         .form-control { border-radius: 12px; padding: 12px; }
         .btn-update { background: var(--primary); color: white; border-radius: 12px; padding: 14px; width: 100%; border: none; font-weight: 600; }
+        .field-error { color: #dc3545; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
 <body>
     <div class="form-card">
         <h2 class="mb-4 fw-bold">Update Doctor Details</h2>
         <form th:action="@{/doctor/update/{id}(id=${doctor.id})}" th:object="${doctor}" method="post">
+            <!-- Preserve existing password via hidden field -->
+            <input type="hidden" th:field="*{password}">
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">First Name</label>
-                    <input type="text" th:field="*{firstName}" class="form-control" required>
+                    <input type="text" th:field="*{firstName}" class="form-control"
+                           pattern="[a-zA-Z\s]+" title="Only letters are allowed" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Last Name</label>
-                    <input type="text" th:field="*{lastName}" class="form-control" required>
+                    <input type="text" th:field="*{lastName}" class="form-control"
+                           pattern="[a-zA-Z\s]+" title="Only letters are allowed" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Specialty</label>
                 <input type="text" th:field="*{specialty}" class="form-control" required>
+                <div class="field-error" th:if="${#fields.hasErrors('specialty')}" th:errors="*{specialty}"></div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Email Address</label>
                 <input type="email" th:field="*{email}" class="form-control" required>
+                <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Phone Number</label>
-                <input type="tel" th:field="*{phone}" class="form-control" required>
+                <input type="tel" th:field="*{phone}" class="form-control"
+                       pattern="[0-9]{10}" maxlength="10" title="Phone number must be exactly 10 digits" required>
+                <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
             </div>
             <div class="mb-4">
                 <label class="form-label">Professional Experience</label>
                 <input type="text" th:field="*{experience}" class="form-control">
-            </div>
-            <div class="mb-4">
-                <label class="form-label">Change Password</label>
-                <input type="password" th:field="*{password}" class="form-control" placeholder="Leave blank to keep current">
+                <div class="field-error" th:if="${#fields.hasErrors('experience')}" th:errors="*{experience}"></div>
             </div>
             <button type="submit" class="btn-update">Update Doctor Record</button>
             <div class="text-center mt-3">

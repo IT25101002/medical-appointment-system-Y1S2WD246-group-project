@@ -2,9 +2,11 @@ package com.medical.medischeduler.controller;
 
 import com.medical.medischeduler.doctor.Doctor;
 import com.medical.medischeduler.doctor.DoctorService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.medical.medischeduler.appointment.Appointment;
@@ -163,7 +165,11 @@ public class DoctorController {
     }
 
     @PostMapping("/save")
-    public String saveDoctor(@ModelAttribute("doctor") Doctor doctor) {
+    public String saveDoctor(@Valid @ModelAttribute("doctor") Doctor doctor,
+                             BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return "doctor/create";
+        }
         doctorService.saveDoctor(doctor);
         return "redirect:/doctor/list";
     }
@@ -176,7 +182,22 @@ public class DoctorController {
     }
 
     @PostMapping("/update/{id}")
-    public String updateDoctor(@PathVariable Long id, @ModelAttribute("doctor") Doctor doctor) {
+    public String updateDoctor(@PathVariable Long id,
+                               @Valid @ModelAttribute("doctor") Doctor doctor,
+                               BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            doctor.setId(id);
+            return "doctor/edit";
+        }
+
+        // Preserve existing password if left blank
+        Doctor existing = doctorService.getDoctorById(id);
+        if (existing != null) {
+            if (doctor.getPassword() == null || doctor.getPassword().isBlank()) {
+                doctor.setPassword(existing.getPassword());
+            }
+        }
+
         doctor.setId(id);
         doctorService.saveDoctor(doctor);
         return "redirect:/doctor/list";
