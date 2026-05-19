@@ -6,3 +6,4 @@ public enum ScheduleStatus {
     COMPLETED,
     CANCELLED
 }
+
